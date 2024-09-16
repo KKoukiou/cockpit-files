@@ -21,6 +21,7 @@ import React, { useState } from "react";
 
 import { CardHeader, CardTitle } from "@patternfly/react-core/dist/esm/components/Card";
 import { Divider } from "@patternfly/react-core/dist/esm/components/Divider";
+import { DropdownItem } from "@patternfly/react-core/dist/esm/components/Dropdown";
 import { MenuToggle, MenuToggleAction } from "@patternfly/react-core/dist/esm/components/MenuToggle";
 import { SearchInput } from "@patternfly/react-core/dist/esm/components/SearchInput";
 import { Select, SelectGroup, SelectList, SelectOption } from "@patternfly/react-core/dist/esm/components/Select";
@@ -30,7 +31,11 @@ import { EyeIcon, EyeSlashIcon, GripVerticalIcon, ListIcon } from "@patternfly/r
 import { SortByDirection } from '@patternfly/react-table';
 
 import cockpit from "cockpit";
+import { KebabDropdown } from "cockpit-components-dropdown";
+import { useDialogs } from "dialogs";
 
+import { FolderFileInfo, useFilesContext } from "./app.tsx";
+import { get_menu_items } from "./menu.tsx";
 import { UploadButton } from "./upload-button.tsx";
 
 const _ = cockpit.gettext;
@@ -130,6 +135,10 @@ export const FilesCardHeader = ({
     setSortBy,
     showHidden,
     setShowHidden,
+    selected,
+    setSelected,
+    clipboard,
+    setClipboard,
     path,
 }: {
     currentFilter: string,
@@ -137,10 +146,42 @@ export const FilesCardHeader = ({
     isGrid: boolean, setIsGrid: React.Dispatch<React.SetStateAction<boolean>>,
     sortBy: Sort, setSortBy: React.Dispatch<React.SetStateAction<Sort>>
     showHidden: boolean, setShowHidden: React.Dispatch<React.SetStateAction<boolean>>,
+    selected: FolderFileInfo[], setSelected: React.Dispatch<React.SetStateAction<FolderFileInfo[]>>,
+    clipboard: string[], setClipboard: React.Dispatch<React.SetStateAction<string[]>>
     path: string,
 }) => {
+    const { addAlert, cwdInfo } = useFilesContext();
+    const dialogs = useDialogs();
+
+    const menuItems = get_menu_items(
+        path, selected, setSelected, clipboard, setClipboard, cwdInfo, addAlert, dialogs
+    ).map((option, i) => {
+        if (option.type === 'divider')
+            return <Divider key={i} />;
+        return (
+            <DropdownItem
+              id={option.id} key={option.id}
+              {... option.className && { className: option.className }}
+              onClick={option.onClick}
+              isDisabled={option.isDisabled || false}
+            >
+                {option.title}
+            </DropdownItem>
+        );
+    });
+
+    const headerKebab = (
+        <KebabDropdown
+          toggleButtonId="dropdown-menu" dropdownItems={menuItems}
+          isDisabled={cwdInfo === null} position="right"
+        />
+    );
+
     return (
-        <CardHeader className="card-actionbar">
+        <CardHeader
+          className="card-actionbar"
+          actions={{ actions: headerKebab }}
+        >
             <CardTitle component="h2" id="files-card-header">
                 <TextContent>
                     <Text component={TextVariants.h2}>
