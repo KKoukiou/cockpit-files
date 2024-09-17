@@ -38,6 +38,8 @@ import { FolderFileInfo, useFilesContext } from "./app.tsx";
 import { get_menu_items } from "./menu.tsx";
 import { UploadButton } from "./upload-button.tsx";
 
+import "./header.scss";
+
 const _ = cockpit.gettext;
 
 export enum Sort {
@@ -176,35 +178,42 @@ export const FilesCardHeader = ({
           isDisabled={cwdInfo === null} position="right"
         />
     );
+    const actions = (
+        <Flex direction={{ default: "row" }} spaceItems={{ default: "spaceItemsSm" }}>
+            <SearchInput
+              className="files-search"
+              placeholder={_("Filter directory")} value={currentFilter}
+              onChange={onFilterChange}
+              onClear={event => onFilterChange(event as React.FormEvent<HTMLInputElement>, "")}
+            />
+            <ViewSelector
+              isGrid={isGrid} setIsGrid={setIsGrid}
+              setSortBy={setSortBy} sortBy={sortBy}
+              showHidden={showHidden} setShowHidden={setShowHidden}
+            />
+            <Divider orientation={{ default: "vertical" }} />
+            <UploadButton
+              path={path}
+            />
+        </Flex>
+    );
 
     return (
         <CardHeader
           className="card-actionbar"
           actions={{ actions: headerKebab }}
         >
-            <CardTitle component="h2" id="files-card-header">
+            <CardTitle
+              component="h2" className="files-card-header"
+              id="files-card-header"
+            >
                 <TextContent>
                     <Text component={TextVariants.h2}>
                         {_("Directories & files")}
                     </Text>
                 </TextContent>
             </CardTitle>
-            <Flex flexWrap={{ default: "nowrap" }} alignItems={{ default: "alignItemsCenter" }}>
-                <SearchInput
-                  placeholder={_("Filter directory")} value={currentFilter}
-                  onChange={onFilterChange}
-                  onClear={event => onFilterChange(event as React.FormEvent<HTMLInputElement>, "")}
-                />
-                <ViewSelector
-                  isGrid={isGrid} setIsGrid={setIsGrid}
-                  setSortBy={setSortBy} sortBy={sortBy}
-                  showHidden={showHidden} setShowHidden={setShowHidden}
-                />
-                <Divider orientation={{ default: "vertical" }} />
-                <UploadButton
-                  path={path}
-                />
-            </Flex>
+            {actions}
         </CardHeader>
     );
 };
